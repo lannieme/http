@@ -1,10 +1,7 @@
 /******************************************************************************
 * echo_server.c                                                               *
 *                                                                             *
-* Description: This file contains the C source code for an echo server.  The  *
-*              server runs on a hard-coded port and simply write back anything*
-*              sent to it by connected clients.  It does not support          *
-*              concurrent clients.                                            *
+* Description: Modification                                    *
 *                                                                             *
 * Authors: Athula Balachandran <abalacha@cs.cmu.edu>,                         *
 *          Wolf Richter <wolf@cs.cmu.edu>                                     *
@@ -62,20 +59,9 @@ int main(int argc, char* argv[])
     fd_set read_fds;  // temp file descriptor list for select()
     int fdmax;        // maximum file descriptor number
 
-    int listener;     
-    int newfd;        // newly accept()ed socket descriptor
-    struct sockaddr_storage remoteaddr; // client address
-    socklen_t addrlen;
-
-    char buf[256];    // buffer for client data
-    int nbytes;
-
     char remoteIP[INET6_ADDRSTRLEN];
     int yes=1;        // for setsockopt() SO_REUSEADDR, below
     int i, j, rv;
-
-
-    
 
     fprintf(stdout, "----- Echo Server -----\n");
     
@@ -91,6 +77,8 @@ int main(int argc, char* argv[])
     addr.sin_addr.s_addr = INADDR_ANY;
 
     //TO-do: logfile check failure
+    FD_ZERO(&master);    // clear the master and temp sets
+    FD_ZERO(&read_fds);
 
     /* servers bind sockets to ports---notify the OS they accept connections */
     if (bind(sock, (struct sockaddr *) &addr, sizeof(addr)))
@@ -108,8 +96,7 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    FD_ZERO(&master);    // clear the master and temp sets
-    FD_ZERO(&read_fds);
+    
     // add the listener to the master set
     FD_SET(sock, &master);
 
