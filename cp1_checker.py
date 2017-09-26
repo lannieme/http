@@ -19,9 +19,9 @@ numWritesReads = int(sys.argv[4])
 numBytes = int(sys.argv[5])
 numConnections = int(sys.argv[6])
 
-if numConnections < numWritesReads:
-    sys.stderr.write('<#connections> should be greater than or equal to <#writes and reads per trial>\n')
-    sys.exit(1)
+# if numConnections < numWritesReads:
+#     sys.stderr.write('<#connections> should be greater than or equal to <#writes and reads per trial>\n')
+#     sys.exit(1)
 
 socketList = []
 
