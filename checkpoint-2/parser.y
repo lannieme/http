@@ -214,7 +214,7 @@ request: request_line request_header t_crlf{
 };
 
 //TO-DO here:
-
+request_headers: request_header | request_header request_headers;
 
 %%
 
