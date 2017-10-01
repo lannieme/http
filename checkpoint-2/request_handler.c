@@ -6,13 +6,13 @@
 #define FILE_TYPE_LENGTH 50
 
 //set status code
-char *STATUS_200 = "200_OK";
-char *STATUS_204 = "204_No Content";
-char *STATUS_404 = "404_Not Found";
-char *STATUS_411 = "411_Length Required";
-char *STATUS_500 = "500_Internal Server Error";
-char *STATUS_501 = "501_Not Implemented";
-char *STATUS_505 = "505_HTTP Version not supported";
+char *STATUS_200 = "200_OK\n";
+char *STATUS_204 = "204_No Content\n";
+char *STATUS_404 = "404_Not Found\n";
+char *STATUS_411 = "411_Length Required\n";
+char *STATUS_500 = "500_Internal Server Error\n";
+char *STATUS_501 = "501_Not Implemented\n";
+char *STATUS_505 = "505_HTTP Version not supported\n";
 
 static const char DATE_FORMAT_STR[]  = "%a, %d %b %Y %H:%M:%S GMT";
 
@@ -72,6 +72,8 @@ void handle_get(Request *request, char *response){
   sprintf(filename, ".%s", request->http_uri);
 
   FILE *fp = fopen(filename, "rb");
+
+  printf("test");
 
   char header[HEADER_SIZE];
   char body[BODY_SIZE];
