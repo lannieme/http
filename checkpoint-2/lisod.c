@@ -21,7 +21,7 @@
 // #include "log.h"
 #include "request_handler.h"
 
-#define ECHO_PORT 9999
+// #define ECHO_PORT 9999
 #define BUF_SIZE 8192
 #define MAX_NO_CLIENT 1024
 
@@ -56,6 +56,7 @@ int main(int argc, char* argv[])
   struct sockaddr_in addr, cli_addr; // client address
   char buf[8192]; // buffer for client data
   int nbytes;
+  int ECHO_PORT;
 
   // server_log = fopen('log.text', 'w'); //init logger
   // if (server_log == NULL) {
@@ -83,6 +84,7 @@ int main(int argc, char* argv[])
   fprintf(stderr, "Server socket successfully created.\n");
 
   addr.sin_family = AF_INET;
+  ECHO_PORT = argv[1];
   addr.sin_port = htons(ECHO_PORT);
   addr.sin_addr.s_addr = INADDR_ANY;
 
