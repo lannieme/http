@@ -214,7 +214,13 @@ request: request_line request_header t_crlf{
 };
 
 //TO-DO here:
-request_headers: request_header | request_header request_headers;
+request_headers: request_header {
+	YPRINTF("parsing_request: Matched Success.\n");
+	return SUCCESS;
+} | request_header request_headers{
+	YPRINTF("parsing_request: Matched Success.\n");
+	return SUCCESS;
+};
 
 %%
 

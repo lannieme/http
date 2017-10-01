@@ -1,12 +1,20 @@
 #include "request_handler.h"
 
+#define HEADER_SIZE      8192
+#define BODY_SIZE        10000
+#define TIME_LENGTH      31
+#define FILE_TYPE_LENGTH 50
+
 //set status code
-char *STATUS_200 = "200_OK"
-char *STATUS_400 = "400_Not Found"
-char *STATUS_411 = "411_Length Required"
-char *STATUS_500 = "500_Internal Server Error"
-char *STATUS_501 = "501_Not Implemented"
-char *STATUS_505 = "505_HTTP Version not supported"
+char *STATUS_200 = "200_OK";
+char *STATUS_204 = "204_No Content";
+char *STATUS_404 = "404_Not Found";
+char *STATUS_411 = "411_Length Required";
+char *STATUS_500 = "500_Internal Server Error";
+char *STATUS_501 = "501_Not Implemented";
+char *STATUS_505 = "505_HTTP Version not supported";
+
+static const char DATE_FORMAT_STR[]  = "%a, %d %b %Y %H:%M:%S GMT";
 
 
 void get_file_type(char *filename, char *filetype){
@@ -26,26 +34,181 @@ void get_file_type(char *filename, char *filetype){
       strcpy(filetype, "text/plain");
 }
 
-static void get_file_content(){
+void get_file_content(FILE *fp, char *file_contents){
+  int i = 0;
+  char c;
 
+  if (fp) {
+      while((c = fgetc(fp)) != EOF) { 
+        file_contents[i++] = c; 
+      }
+  }
+  file_contents[i] = '\0';
+}
+
+int get_file_length(char *filename){
+  struct stat st;
+  stat(filename, &st);
+  return st.st_size;
+}
+
+void get_current_time(char *cur_time){
+  time_t t;
+  t = time(NULL);
+
+  strftime(cur_time, TIME_LENGTH, DATE_FORMAT_STR, gmtime(&t));
+}
+
+void get_last_modified(char *filename, char *file_modified){
+  struct stat attrib;
+  stat(filename, &attrib);
+
+  strftime(file_modified, TIME_LENGTH, DATE_FORMAT_STR, gmtime(&(attrib.st_mtime)));
 }
 
 
+void handle_get(Request *request, char *response){
+  char filename[1024];
+  sprintf(filename, ".%s", request->http_uri);
 
-void handle_get(){
+  FILE *fp = fopen(filename, "rb");
+
+  char header[HEADER_SIZE];
+  char body[BODY_SIZE];
+
+  if (access(request->http_uri, F_OK ) == -1){
+    // response for non-existing file
+    strcat(header, STATUS_404);
+    printf("The file does not exists \n"); 
+  } else {
+    // 200 OK
+    strcat(header, "HTTP/1.1 ");
+    strcat(header, STATUS_200);
+    // Date & Time
+    char date_time[TIME_LENGTH];
+    get_current_time(date_time);
+    strcat(header, "Date: ");
+    strcat(header, date_time);
+    strcat(header, "\r\n");
+    // Server
+    strcat(header, "Server: Liso/1.0\n");
+    // Last Modified
+    char last_modified_time[TIME_LENGTH];
+    get_last_modified(filename, last_modified_time);
+    strcat(header, "Last-Modified: ");
+    strcat(header, last_modified_time);
+    strcat(header, "\r\n");
+    // Content-Length
+    strcat(header, "Content-length: ");
+    strcat(header, get_file_length(filename));
+    strcat(header,"\r\n");
+    // Content-Type
+    char file_type[FILE_TYPE_LENGTH];
+    get_file_type(filename, file_type);
+    strcat(header, "Content-Type: ");
+    strcpy(header, file_type);
+    strcat(header,"\r\n");
+    // Connection 
+    // TODO
+    // Add "Close"
+    strcat(header, "Connection: keep-alive\r\n");
+  }
+
+  char file_content[BODY_SIZE];
+  get_file_content(fp, file_content);
+  fclose(fp);
+
+  strcat(response, header);
+  strcat(response, "\r\n");
+  strcat(response, file_content);
 
 }
 
-void handle_head(){
+void handle_head(Request *request, char *response){   
+  char filename[1024];
+  sprintf(filename, ".%s", request->http_uri);
 
+  FILE *fp = fopen(filename, "rb");
 
+  char header[HEADER_SIZE];
+  char body[BODY_SIZE];
+
+  if (access(request->http_uri, F_OK ) == -1){
+    // response for non-existing file
+    strcat(header, STATUS_404);
+    printf("The file does not exists \n"); 
+  } else {
+    // 200 OK
+    strcat(header, "HTTP/1.1 ");
+    strcat(header, STATUS_200);
+    // Date & Time
+    char date_time[TIME_LENGTH];
+    get_current_time(date_time);
+    strcat(header, "Date: ");
+    strcat(header, date_time);
+    strcat(header, "\r\n");
+    // Server
+    strcat(header, "Server: Liso/1.0\n");
+    // Last Modified
+    char last_modified_time[TIME_LENGTH];
+    get_last_modified(filename, last_modified_time);
+    strcat(header, "Last-Modified: ");
+    strcat(header, last_modified_time);
+    strcat(header, "\r\n");
+    // Content-Length
+    strcat(header, "Content-length: ");
+    strcat(header, get_file_length(filename));
+    strcat(header,"\r\n");
+    // Content-Type
+    char file_type[FILE_TYPE_LENGTH];
+    get_file_type(filename, file_type);
+    strcat(header, "Content-Type: ");
+    strcpy(header, file_type);
+    strcat(header,"\r\n");
+    // Connection 
+    // TODO
+    // Add "Close"
+    strcat(header, "Connection: keep-alive\r\n");
+  }
 }
 
-void handle_post(){
-
-
+void handle_post(Request *request, char *response){
+  if (access(request->http_uri, F_OK ) != -1 ) {
+    strcat(response, STATUS_200);  
+  }
+  else {
+    strcat(response, STATUS_204);
+  }
 }
 
-void handle_request(){
-  get_file_type(filename, filetype);
+//handle request and point to corresponding method
+void handle_request(char *buf,int nbytes,char *response){
+  Request *request = parse(buf, nbytes);
+
+  if (!request) {
+    strcat(response, STATUS_500);  
+  }
+
+  if (!strcmp(request->http_version , "HTTP/1.1")) {
+    strcpy(response, request->http_version);
+    strcat(response, " ");
+
+    if (!strcmp(request->http_method, "GET")) {
+      handle_get(request, response);
+    } 
+    else if (!strcmp(request->http_method, "HEAD")) {
+      handle_head(request, response);        
+    }
+    else if (!strcmp(request->http_method, "POST")) {
+      handle_post(request, response);        
+    }
+    else {
+      strcat(response, STATUS_501);  
+    }
+  }
+  else {
+    strcpy(response, request->http_version);
+    strcat(response, " ");
+    strcat(response, STATUS_505);
+  }
 }

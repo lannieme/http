@@ -18,18 +18,14 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
-// #include "log.h"
-#include "request_handler.h"
 
 #define ECHO_PORT 9999
-#define BUF_SIZE 8192
-#define MAX_NO_CLIENT 1024
-
-// FILE *server_log; //https://stackoverflow.com/questions/23856306/how-to-create-log-file-in-c
+#define BUF_SIZE 4096
 
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
 {
+    printf("here 0");
     if (sa->sa_family == AF_INET) {
         return &(((struct sockaddr_in*)sa)->sin_addr);
     }
@@ -44,7 +40,6 @@ int close_socket(int sock)
         fprintf(stderr, "Failed closing socket.\n");
         return 1;
     }
-    fprintf(stderr, "Closed socket.\n");
     return 0;
 }
 
@@ -54,14 +49,8 @@ int main(int argc, char* argv[])
   int sock, client_sock; // listening socket descriptor
   socklen_t cli_size;
   struct sockaddr_in addr, cli_addr; // client address
-  char buf[8192]; // buffer for client data
+  char buf[4096]; // buffer for client data
   int nbytes;
-
-  // server_log = fopen('log.text', 'w'); //init logger
-  // if (server_log == NULL) {
-  //   fprintf(stdout, "ERROR: Server log file does not exist");
-  //   return EXIT_FAILURE;
-  // }
 
   fd_set master;    // master file descriptor list
   fd_set read_fds;  // temp file descriptor list for select()
@@ -71,7 +60,7 @@ int main(int argc, char* argv[])
   int i;
 
 
-  fprintf(stderr, "----- Echo Server -----\n");
+  fprintf(stdout, "----- Echo Server -----\n");
   
   /* all networked programs must create a socket */
   if ((sock = socket(PF_INET, SOCK_STREAM, 0)) == -1)
@@ -79,8 +68,6 @@ int main(int argc, char* argv[])
       fprintf(stderr, "Failed creating socket.\n");
       return EXIT_FAILURE;
   }
-  
-  fprintf(stderr, "Server socket successfully created.\n");
 
   addr.sin_family = AF_INET;
   addr.sin_port = htons(ECHO_PORT);
@@ -112,13 +99,13 @@ int main(int argc, char* argv[])
 
   // keep track of the biggest file descriptor
   fdmax = sock; // so far, it's this one
+   printf("here 0");
   /* finally, loop waiting for input and then write it back */
   while (1)
   {
     read_fds = master; // copy it
     if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1) {
         perror("select");
-        fprintf(stderr, "ERROR: not able to select");
         exit(4);
     }
 
@@ -126,17 +113,21 @@ int main(int argc, char* argv[])
     for(i = 0; i <= fdmax; i++) {
         if (FD_ISSET(i, &read_fds)) { // we got one!!
             if (i == sock) {
+                printf("here 1");
                 // handle new connections
                 cli_size = sizeof(cli_addr);
                 client_sock = accept(sock,
                     (struct sockaddr *)&cli_addr,
                     &cli_size);
+                printf("here 2");
 
                 if (client_sock == -1) {
                     perror("accept");
-                    fprintf(stderr, "ERROR: not able to accept connection");
+                    printf("here 3");
+                    //TO-DO: LOG
                 } else {
                     FD_SET(client_sock, &master); // add to master set
+                    printf("here 4");
                     if (client_sock > fdmax) {    // keep track of the max
                         fdmax = client_sock;
 
@@ -147,36 +138,26 @@ int main(int argc, char* argv[])
                             get_in_addr((struct sockaddr*)&cli_addr),
                             remoteIP, INET6_ADDRSTRLEN),
                         client_sock);
-                    fprintf(stderr, "selectserver: new connection from %s on "
-                        "socket %d\n",
-                        inet_ntop(cli_addr.sin_family,
-                            get_in_addr((struct sockaddr*)&cli_addr),
-                            remoteIP, INET6_ADDRSTRLEN),
-                        client_sock);
                 }
             } else {
+                printf("here 5");
                 // handle data from a client
-
-                char* response = malloc(20000);
-                handle_request(buf,nbytes,response);
-
                 if ((nbytes = recv(i, buf, sizeof buf, 0)) <= 0) {
                     // got error or connection closed by client
                     if (nbytes == 0) {
                         // connection closed
                         printf("selectserver: socket %d hung up\n", i);
-                        fprintf(stderr, "selectserver: socket %d hung up\n", i);
+                        //TO-DO: LOG
                     } else {
                         perror("recv");
-                        fprintf(stderr, "ERROR: not able to receive data from socket %d\n",i );
+                        //TO-DO: LOG
                     }
                     close(i); // bye!
                     FD_CLR(i, &master); // remove from master set
-                } else { //data ready to proceed
+                } else {
                     int status = send(i, buf, nbytes, 0);
                     if (status  == -1) {
                       perror("send");
-                      fprintf(stderr, "ERROR：not able to sent data to client");
                     }
                 }
             } // END handle data from client
@@ -186,6 +167,6 @@ int main(int argc, char* argv[])
   }
 
   close_socket(sock);
-  // fclose(server_log);
+
   return EXIT_SUCCESS;
 }
