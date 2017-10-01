@@ -192,7 +192,7 @@ void handle_post(Request *request, char *response){
 }
 
 //handle request and point to corresponding method
-void handle_request(char *buf,int nbytes,char *response, char* agrv){
+void handle_request(char *buf,int nbytes,char *response, char* argv){
   int fd_in = open(argv, O_RDONLY);
   int index;
   char buff[8192];
