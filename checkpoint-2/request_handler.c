@@ -195,12 +195,12 @@ void handle_post(Request *request, char *response){
 void handle_request(char *buf,int nbytes,char *response, char* agrv){
   int fd_in = open(argv, O_RDONLY);
   int index;
-  char buf[8192];
+  char buff[8192];
   if(fd_in < 0) {
     printf("Failed to open the file\n");
     return 0;
   }
-  int readRet = read(fd_in,buf,8192);
+  int readRet = read(fd_in,buff,8192);
   Request *request = parse(buf,readRet,fd_in);
   // Request *request = parse(buf, nbytes,fd_in);
 
