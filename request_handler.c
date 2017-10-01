@@ -13,13 +13,13 @@
 #define FILE_TYPE_LENGTH 50
 
 //set status code
-char *STATUS_200 = "200_OK\r\n";
-char *STATUS_204 = "204_No Content\r\n";
-char *STATUS_404 = "404_Not Found\r\n";
-char *STATUS_411 = "411_Length Required\r\n";
-char *STATUS_500 = "500_Internal Server Error\r\n";
-char *STATUS_501 = "501_Not Implemented\r\n";
-char *STATUS_505 = "505_HTTP Version not supported\r\n";
+char *STATUS_200 = "200_OK\n";
+char *STATUS_204 = "204_No Content\n";
+char *STATUS_404 = "404_Not Found\n";
+char *STATUS_411 = "411_Length Required\n";
+char *STATUS_500 = "500_Internal Server Error\n";
+char *STATUS_501 = "501_Not Implemented\n";
+char *STATUS_505 = "505_HTTP Version not supported\n";
 
 static const char DATE_FORMAT_STR[]  = "%a, %d %b %Y %H:%M:%S GMT";
 
