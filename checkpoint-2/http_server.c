@@ -158,9 +158,7 @@ int main(int argc, char* argv[])
                 // handle data from a client
 
                 char* response = malloc(20000);
-                handle_request(buf,nbytes,response,argv[1]);
-
-
+                handle_request(buf,nbytes,response);
 
                 if ((nbytes = recv(i, buf, sizeof buf, 0)) <= 0) {
                     // got error or connection closed by client

@@ -192,18 +192,9 @@ void handle_post(Request *request, char *response){
 }
 
 //handle request and point to corresponding method
-void handle_request(char *buf,int nbytes,char *response, char* argv){
-  int fd_in = open(argv, O_RDONLY);
-  int index;
-  char buff[8192];
-  if(fd_in < 0) {
-    printf("Failed to open the file\n");
-    return 0;
-  }
-  int readRet = read(fd_in,buff,8192);
-  Request *request = parse(buf,readRet,fd_in);
-  // Request *request = parse(buf, nbytes,fd_in);
+void handle_request(char *buf,int nbytes,char *response){
 
+  Request *request = parse(buf, nbytes);
 
   if (!request) {
     strcat(response, STATUS_500);  

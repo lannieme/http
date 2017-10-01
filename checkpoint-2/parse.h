@@ -21,4 +21,4 @@ typedef struct
 	int header_count;
 } Request;
 
-Request* parse(char *buffer, int size, int fd_in);
+Request* parse(char *buffer, int size);
