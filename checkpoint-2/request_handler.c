@@ -1,4 +1,11 @@
 #include "request_handler.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+
 
 #define HEADER_SIZE      8192
 #define BODY_SIZE        10000
